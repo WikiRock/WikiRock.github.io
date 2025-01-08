@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mägo de Oz</title>
+    <style>
+        body {
+            font-family: "Elephant", serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #1DB954;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            align-items: center;
+        }
+        .navbar a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+        .navbar a:hover {
+            color: #000000;
+        }
+        .content-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #1E1E1E;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        h1 {
+            color: #1DB954;
+            margin-bottom: 20px;
+        }
+        img {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+        }
+        p {
+            line-height: 1.6;
+            font-size: 16px;
+            text-align: justify;
+        }
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .button-container a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+            padding: 10px 15px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .button-container a img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        .back-link {
+            background-color: #1DB954;
+            color: #ffffff;
+        }
+        .back-link:hover {
+            background-color: #14833b;
+        }
+        .spotify-button {
+            background-color: #1DB954;
+            color: #ffffff;
+        }
+        .spotify-button:hover {
+            background-color: #14833b;
+        }
+        .youtube-button {
+            background-color: #FF0000;
+            color: #ffffff;
+        }
+        .youtube-button:hover {
+            background-color: #cc0000;
+        }
+        .spacer {
+            flex-basis: 100%;
+            height: 0;
+        }
+          /* Estilo para los botones de dictado */
+          #start-dictation, #stop-dictation {
+            font-family: "Elephant", serif; /* Fuente personalizada */
+        }
+    </style>
+</head>
+<!-- Contenedor para los botones de dictado -->
+<div id="voice-controls" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <button id="start-dictation" style="background-color: #1DB954; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+        🎤 Iniciar Dictado
+    </button>
+    <button id="stop-dictation" style="background-color: #CD5C5C; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+        🛑 Detener Dictado
+    </button>
+</div>
+
+<!-- Script para la síntesis de voz -->
+<script>
+    const startButton = document.getElementById("start-dictation");
+    const stopButton = document.getElementById("stop-dictation");
+
+    const synth = window.speechSynthesis;
+    let isSpeaking = false; // Bandera para controlar el estado de la síntesis
+    let queue = []; // Cola para fragmentos de texto
+    let currentUtterance = null; // Utterance en curso
+
+    // Función para dividir el texto en fragmentos pequeños
+    function splitText(text, maxLength = 200) {
+        const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+        const chunks = [];
+        let currentChunk = "";
+
+        sentences.forEach((sentence) => {
+            if (currentChunk.length + sentence.length <= maxLength) {
+                currentChunk += sentence + " ";
+            } else {
+                chunks.push(currentChunk.trim());
+                currentChunk = sentence + " ";
+            }
+        });
+
+        if (currentChunk) {
+            chunks.push(currentChunk.trim());
+        }
+
+        return chunks;
+    }
+
+// Función para iniciar el dictado
+function startDictation() {
+    const elementsToSkip = ["#start-dictation", "#stop-dictation", ".navbar"]; // Elementos a excluir
+    const elements = document.querySelectorAll("body *:not(script):not(style)");
+
+    let textToSpeak = "";
+    elements.forEach((element) => {
+        if (!elementsToSkip.some((selector) => element.matches(selector))) {
+            const visibleText = element.innerText || element.textContent || "";
+            textToSpeak += visibleText.trim() ? `${visibleText.trim()} ` : "";
+        }
+    });
+
+    textToSpeak = textToSpeak.trim(); // Elimina espacios en blanco sobrantes
+    queue = splitText(textToSpeak);
+
+    if (!isSpeaking && queue.length > 0) {
+        isSpeaking = true;
+        startButton.style.display = "none";
+        stopButton.style.display = "inline-block";
+        speakNext();
+    }
+}
+
+
+    // Función para hablar el siguiente fragmento
+    function speakNext() {
+        if (queue.length > 0) {
+            const text = queue.shift();
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = "es-ES"; // Configurar idioma a español
+
+            currentUtterance.onend = () => {
+                if (isSpeaking) {
+                    speakNext();
+                }
+            };
+
+            currentUtterance.onerror = () => {
+                console.error("Error en la síntesis de voz.");
+                stopDictation();
+            };
+
+            synth.speak(currentUtterance);
+        } else {
+            stopDictation();
+        }
+    }
+
+    // Función para detener el dictado
+    function stopDictation() {
+        isSpeaking = false;
+        if (synth.speaking) {
+            synth.cancel();
+        }
+        queue = [];
+        startButton.style.display = "inline-block";
+        stopButton.style.display = "none";
+    }
+
+    // Asociar eventos a los botones
+    startButton.addEventListener("click", startDictation);
+    stopButton.addEventListener("click", stopDictation);
+</script>
+<body>
+    <!-- Menú interactivo estilo Spotify -->
+    <div class="navbar">
+        <div>
+            <a href="index.html">Inicio</a>
+            <a href="info.html">Nosotros</a>
+            <a href="disenos.html">Diseños</a>
+            <a href="https://www.instagram.com/emiliomo_/" target="_blank">Contacto</a>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="content-container">
+        <h1>Mägo de Oz</h1>
+        <img src="magodeoz1.png" alt="Mägo de Oz">
+        <p>
+            Mägo de Oz es una banda española de folk metal fundada el 7 de julio de 1988 por el baterista Txus di Fellatio en el barrio Begoña (Madrid). Aunque inicialmente llamada Transilvania en honor a Iron Maiden, no sería hasta 1989 cuando pasaría a llamarse Mägo de Oz.
+        </p>
+        <p>
+            Desde sus inicios se caracterizaron por su heterogénea y peculiar propuesta musical de mezclar el sonido del metal y hard rock tradicional con el de otros estilos tan dispares como la música clásica, el Rock And Roll, el Blues, la música celta, la música folk, entre otros. Sin embargo, la música celta es la que más ha predominado en el sonido de sus canciones hasta la actualidad, y a la que, en parte, deben su enorme éxito. 
+        </p>
+        <p>
+            Se han consagrado como una de las bandas más importantes del heavy metal español, saltando al éxito en 1998 con el disco <strong>La leyenda de la Mancha</strong>, y llegando a las listas de éxitos musicales del país con canciones como «Molinos de viento» o «Fiesta pagana», ésta última de su primer disco conceptual doble, <strong>Finisterra</strong>.
+        </p>
+        <p>
+            La fama del grupo y su éxito, tanto en la prensa de música rock como en los medios de comunicación convencionales a nivel nacional e internacional (especialmente en Hispanoamérica), se incrementó mucho más tras la publicación en 2003 del disco <strong>Gaia</strong>, el primer trabajo de una trilogía conceptual que sería completada con los discos de igual o mayor éxito, <strong>Gaia II: La Voz Dormida</strong> (2005) y <strong>Gaia III: Atlantia</strong> (2010).
+        </p>
+        <p>
+            También cabe destacar la escenografía usada en los conciertos, que va desde barcos piratas hasta catedrales medievales, la pirotecnia y varias puestas en escena jamás vistas antes en un grupo español. En el año 2008 se les entregó el disco de diamante por superar el millón de copias vendidas de toda su obra discográfica solamente en España. Se calcula que han vendido más de 2.000.000 de discos solamente en España e Iberoamérica.
+        </p>
+
+        <!-- Botones distribuidos -->
+        <div class="button-container">
+            <!-- Botones superiores (Regresar) -->
+            <a href="index.html" class="back-link">Regresar al Inicio</a>
+            <a href="bandas.html" class="back-link">Regresar a Otras Bandas</a>
+
+            <div class="spacer"></div> <!-- Espaciador para separar filas -->
+
+            <!-- Botones inferiores (Escuchar) -->
+            <a href="https://open.spotify.com/intl-es/artist/5ZNxiPcbKgaNcBrERMpqeu" target="_blank" class="spotify-button">
+                <img src="spotifylogo.jpg" alt="Spotify"> Escuchar en Spotify
+            </a>
+            <a href="https://www.youtube.com/@magodeoz" target="_blank" class="youtube-button">
+                <img src="youtubelogo.png" alt="YouTube"> Escuchar en YouTube
+            </a>
+        </div>
+    </div>
+</body>
+</html>

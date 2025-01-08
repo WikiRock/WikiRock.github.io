@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Doors</title>
+    <!-- Bootstrap y estilos -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            font-family: "Elephant", serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #1DB954;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            align-items: center;
+        }
+        .navbar a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+        .navbar a:hover {
+            color: #000000;
+        }
+        .container {
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+        h1 {
+            color: #1DB954;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .carousel-caption {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .carousel-caption h5 {
+            color: #1DB954;
+        }
+        .btn-primary {
+            background-color: #1DB954;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #14833b;
+        }
+        .btn-success {
+            background-color: #CD5C5C;
+        }
+        .btn-success:hover {
+            background-color: #FF0000;
+        }
+        .carousel-inner img {
+            height: 600px;
+            object-fit: cover;
+        }
+        .band-links {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .band-links a {
+            background-color: #1DB954;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .band-links a:hover {
+            background-color: #14833b;
+        }
+        /* Estilo para los botones de dictado */
+        #start-dictation, #stop-dictation {
+            font-family: "Elephant", serif;
+        }
+    </style>
+</head>
+<!-- Contenedor para los botones de dictado -->
+<div id="voice-controls" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <button id="start-dictation" style="background-color: #1DB954; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+        🎤 Iniciar Dictado
+    </button>
+    <button id="stop-dictation" style="background-color: #CD5C5C; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+        🛑 Detener Dictado
+    </button>
+</div>
+
+<!-- Script para la síntesis de voz -->
+<script>
+    const startButton = document.getElementById("start-dictation");
+    const stopButton = document.getElementById("stop-dictation");
+
+    const synth = window.speechSynthesis;
+    let isSpeaking = false; 
+    let queue = []; 
+    let currentUtterance = null;
+
+    function splitText(text, maxLength = 200) {
+        const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+        const chunks = [];
+        let currentChunk = "";
+
+        sentences.forEach((sentence) => {
+            if (currentChunk.length + sentence.length <= maxLength) {
+                currentChunk += sentence + " ";
+            } else {
+                chunks.push(currentChunk.trim());
+                currentChunk = sentence + " ";
+            }
+        });
+
+        if (currentChunk) {
+            chunks.push(currentChunk.trim());
+        }
+
+        return chunks;
+    }
+
+    function startDictation() {
+        const textToSpeak = document.body.innerText || "";
+        queue = splitText(textToSpeak);
+
+        if (!isSpeaking && queue.length > 0) {
+            isSpeaking = true;
+            startButton.style.display = "none";
+            stopButton.style.display = "inline-block";
+            speakNext();
+        }
+    }
+
+    function speakNext() {
+        if (queue.length > 0) {
+            const text = queue.shift();
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = "es-ES"; 
+
+            currentUtterance.onend = () => {
+                if (isSpeaking) {
+                    speakNext();
+                }
+            };
+
+            currentUtterance.onerror = () => {
+                console.error("Error en la síntesis de voz.");
+                stopDictation();
+            };
+
+            synth.speak(currentUtterance);
+        } else {
+            stopDictation();
+        }
+    }
+
+    function stopDictation() {
+        isSpeaking = false;
+        if (synth.speaking) {
+            synth.cancel();
+        }
+        queue = [];
+        startButton.style.display = "inline-block";
+        stopButton.style.display = "none";
+    }
+
+    startButton.addEventListener("click", startDictation);
+    stopButton.addEventListener("click", stopDictation);
+</script>
+
+<body>
+    <!-- Menú interactivo estilo Spotify -->
+    <div class="navbar">
+        <div>
+            <a href="index.html">Inicio</a>
+            <a href="info.html">Nosotros</a>
+            <a href="disenos.html">Diseños</a>
+            <a href="https://www.instagram.com/emiliomo_/" target="_blank">Contacto</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>The Doors</h1>
+
+        <!-- Carrusel de imágenes -->
+        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+            <!-- Indicadores -->
+            <ol class="carousel-indicators">
+                <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+            </ol>
+
+            <!-- Contenido del carrusel -->
+            <div class="carousel-inner">
+                <!-- Primera diapositiva -->
+                <div class="carousel-item active">
+                    <img class="d-block w-100" src="thedoors1.jpg" alt="The Doors - The Doors (1967)">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>The Doors - "The Doors" (1967)</h5>
+                        <p>Incluye sencillos como "Break On Through (To the Other Side)" (255M de escuchas) y "Soul Kitchen" (50M de escuchas).</p>
+                        <a href="https://www.youtube.com/playlist?list=PLiN-7mukU_RHopba7ndH5EMvoac_iOeqv" class="btn btn-success" target="_blank">Escuchar en YouTube</a>
+                        <a href="https://open.spotify.com/intl-es/album/1jWmEhn3ggaL6isoyLfwBn" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+
+                <!-- Segunda diapositiva -->
+                <div class="carousel-item">
+                    <img class="d-block w-100" src="thedoors2.jpg" alt="The Doors - Strange Days (1967)">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>The Doors - Strange Days (1967)</h5>
+                        <p>Incluye éxitos como "People Are Strange" (345M de escuchas) y "Love Me Two Times" (200M de escuchas).</p>
+                        <a href="https://www.youtube.com/playlist?list=PL2PQ6C9BImBBJwLPcfVbaokcAWyn6JQF1" class="btn btn-success" target="_blank">Escuchar en YouTube</a>
+                        <a href="https://open.spotify.com/intl-es/album/6v5IVMmY1IvWtbfnQoiFSf" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles de navegación -->
+            <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Anterior</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Siguiente</span>
+            </a>
+        </div>
+ <!-- Información de la banda -->
+<div class="band-info">
+    <p>The Doors fue una banda icónica de rock y blues formada en Los Ángeles, California, en julio de 1965. Su estilo único y la profunda conexión emocional de sus letras la convirtieron en una de las bandas más influyentes de su época.</p>
+    <p>Con una carrera que abarcó hasta 1973, la banda logró impactar al mundo con su música, alcanzando cifras impresionantes como más de 33 millones de discos vendidos solo en Estados Unidos y más de 100 millones a nivel mundial. The Doors se distinguió por ser la primera banda estadounidense en lograr 8 discos de oro consecutivos, consolidando su legado en la historia del rock.</p>
+    <p>En 1993, The Doors recibió uno de los máximos honores al ser incluidos en el Rock And Roll Hall Of Fame, y en 2004, fueron reconocidos en la lista de los 100 mejores artistas de todos los tiempos por su innovación, creatividad y trascendencia cultural.</p>
+</div>
+
+        <!-- Enlaces a otras páginas -->
+        <div class="band-links">
+            <a href="index.html">Página principal</a>
+            <a href="caifanes.html">Caifanes</a>
+            <a href="queen.html">Queen</a>
+            <a href="elefante.html">Elefante</a>
+            <a href="bandas.html">Mas Bandas</a>
+        </div>
+    </div>
+</body>
+</html>

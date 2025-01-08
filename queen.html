@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queen</title>
+    <!-- Bootstrap y estilos -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            font-family: "Elephant", serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #1DB954;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            align-items: center;
+        }
+        .navbar a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+        .navbar a:hover {
+            color: #000000;
+        }
+        .container {
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+        h1 {
+            color: #1DB954;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .carousel-caption {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .carousel-caption h5 {
+            color: #1DB954;
+        }
+        .btn-primary {
+            background-color: #1DB954;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #14833b;
+        }
+        .btn-success {
+            background-color: #CD5C5C;
+        }
+        .btn-success:hover {
+            background-color: #FF0000;
+        }
+        .carousel-inner img {
+            height: 600px;
+            object-fit: cover;
+        }
+        .band-links {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            position: relative;
+            z-index: 100; /* Aseguramos que los botones estén por encima del carrusel */
+        }
+        .band-links a {
+            background-color: #1DB954;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .band-links a:hover {
+            background-color: #14833b;
+        }
+
+        /* Aquí ajustamos el z-index para los indicadores del carrusel */
+        .carousel-indicators {
+            z-index: 1; /* Aseguramos que los indicadores estén debajo de los botones */
+        }
+    </style>
+</head>
+<!-- Contenedor para los botones de dictado -->
+<div id="voice-controls" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <button id="start-dictation" style="background-color: #1DB954; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+        🎤 Iniciar Dictado
+    </button>
+    <button id="stop-dictation" style="background-color: #CD5C5C; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+        🛑 Detener Dictado
+    </button>
+</div>
+
+<!-- Script para la síntesis de voz -->
+<script>
+    const startButton = document.getElementById("start-dictation");
+    const stopButton = document.getElementById("stop-dictation");
+
+    const synth = window.speechSynthesis;
+    let isSpeaking = false; // Bandera para controlar el estado de la síntesis
+    let queue = []; // Cola para fragmentos de texto
+    let currentUtterance = null; // Utterance en curso
+
+    // Función para dividir el texto en fragmentos pequeños
+    function splitText(text, maxLength = 200) {
+        const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+        const chunks = [];
+        let currentChunk = "";
+
+        sentences.forEach((sentence) => {
+            if (currentChunk.length + sentence.length <= maxLength) {
+                currentChunk += sentence + " ";
+            } else {
+                chunks.push(currentChunk.trim());
+                currentChunk = sentence + " ";
+            }
+        });
+
+        if (currentChunk) {
+            chunks.push(currentChunk.trim());
+        }
+
+        return chunks;
+    }
+
+    // Función para iniciar el dictado
+    function startDictation() {
+        const textToSpeak = document.body.innerText || "";
+        queue = splitText(textToSpeak);
+
+        if (!isSpeaking && queue.length > 0) {
+            isSpeaking = true;
+            startButton.style.display = "none";
+            stopButton.style.display = "inline-block";
+            speakNext();
+        }
+    }
+
+    // Función para hablar el siguiente fragmento
+    function speakNext() {
+        if (queue.length > 0) {
+            const text = queue.shift();
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = "es-ES"; // Configurar idioma a español
+
+            currentUtterance.onend = () => {
+                if (isSpeaking) {
+                    speakNext();
+                }
+            };
+
+            currentUtterance.onerror = () => {
+                console.error("Error en la síntesis de voz.");
+                stopDictation();
+            };
+
+            synth.speak(currentUtterance);
+        } else {
+            stopDictation();
+        }
+    }
+
+    // Función para detener el dictado
+    function stopDictation() {
+        isSpeaking = false;
+        if (synth.speaking) {
+            synth.cancel();
+        }
+        queue = [];
+        startButton.style.display = "inline-block";
+        stopButton.style.display = "none";
+    }
+
+    // Asociar eventos a los botones
+    startButton.addEventListener("click", startDictation);
+    stopButton.addEventListener("click", stopDictation);
+</script>
+<body>
+    <!-- Menú interactivo estilo Spotify -->
+    <div class="navbar">
+        <div>
+            <a href="index.html">Inicio</a>
+            <a href="info.html">Nosotros</a>
+            <a href="disenos.html">Diseños</a>
+            <a href="https://www.instagram.com/emiliomo_/" target="_blank">Contacto</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Queen</h1>
+
+        <!-- Carrusel de imágenes -->
+        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+                <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+            </ol>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img class="d-block w-100" src="queen1.jpg" alt="Queen - A Night at the Opera (1975)">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Queen - A Night at the Opera (1975)</h5>
+                        <p>Este álbum de Queen incluye una de sus canciones más emblemáticas, "Bohemian Rhapsody". Marcó un hito en la música rock con su mezcla única de estilos y su producción innovadora.</p>
+                        <p>Sus dos primeras canciones de este albúm se llaman: Death on Two Legs 79M de escuchas, Lazing on a Sunday Afternoon 56M de escuchas</p>
+                        <a href="https://www.youtube.com/playlist?list=PLBnJv6rImVe9XXPLwK2CvysVd_CnrYB81" class="btn btn-success" target="_blank">Escuchar en Youtube</a>
+                        <a href="https://open.spotify.com/intl-es/album/1GbtB4zTqAsyfZEsm1RZfx" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img class="d-block w-100" src="queen2.jpg" alt="Queen - Jazz (1978)">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Queen - Jazz (1978)</h5>
+                        <p>Este álbum incluye éxitos como "Don't Stop Me Now" y "Bicycle Race", mostrando la diversidad musical de la banda con un estilo único e innovador.</p>
+                        <p>Algunas canciones populares de este álbum son: Bicycle Race 345M de escuchas, Don't Stop Me Now 1B de escuchas.</p>
+                        <a href="https://www.youtube.com/playlist?list=PLBnJv6rImVe85A_GhCY3grZXQIeV-e9TJ" class="btn btn-success" target="_blank">Escuchar en Youtube</a>
+                        <a href="https://open.spotify.com/intl-es/album/2yuTRGIackbcReLUXOYBqU" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+                <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Anterior</span>
+                </a>
+                <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Siguiente</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Información de la banda -->
+        <div class="band-info">
+            <p>Queen es una banda británica de rock formada en 1970 en Londres, integrada originalmente por el cantante y pianista Freddie Mercury, el guitarrista Brian May, el baterista Roger Taylor y el bajista John Deacon (el cual llegaría un año después al grupo para completar la formación clásica). Sus primeros trabajos estuvieron influenciados por el rock progresivo y el hard rock, pero la banda se aventuró gradualmente en trabajos más convencionales y amigables con la radio, incorporando más estilos como el arena rock y el pop rock.</p>
+            <p>Antes de formar Queen, May y Taylor habían tocado juntos en la banda Smile. Mercury se apegó a la banda y les animó a experimentar con técnicas escénicas y de grabación más elaboradas. Se unió en 1970 y sugirió el nombre de <strong>Queen</strong>. Deacon fue reclutado en febrero de 1971, antes de que la banda lanzara su álbum debut homónimo en 1973. Queen apareció por primera vez en las listas de éxitos del Reino Unido con su segundo álbum, <strong>Queen II</strong>, en 1974. <strong>Sheer Heart Attack</strong> más tarde ese año y <strong>A Night at the Opera</strong> en 1975 trajeron con ellos, el éxito internacional. Este último presentó <strong>Bohemian Rhapsody</strong>, que se mantuvo en el número uno en el Reino Unido durante nueve semanas y ayudó a popularizar el formato de vídeo musical.</p>
+        </div>
+
+        <!-- Enlaces a otras páginas -->
+        <div class="band-links">
+            <a href="index.html">Página principal</a>
+            <a href="caifanes.html">Caifanes</a>
+            <a href="thedoors.html">The Doors</a>
+            <a href="elefante.html">Elefante</a>
+            <a href="bandas.html">Mas Bandas</a>
+        </div>
+    </div>
+</body>
+</html>

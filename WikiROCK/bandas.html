@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WikiRock</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: "Elephant", serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #1DB954;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            align-items: center;
+        }
+        .navbar a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+        .navbar a:hover {
+            color: #000000;
+        }
+        h1 {
+            color: #1DB954;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .band-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .band-item {
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .band-item img {
+            width: 100%;
+            max-width: 250px;
+            height: 250px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        .band-item:hover {
+            transform: scale(1.05);
+        }
+        .band-item span {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        a {
+            text-decoration: none;
+        }
+        /* Estilo para los botones de dictado */
+        #start-dictation, #stop-dictation {
+            font-family: "Elephant", serif; /* Fuente personalizada */
+        }
+    </style>
+</head>
+<!-- Contenedor para los botones de dictado -->
+<div id="voice-controls" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <button id="start-dictation" style="background-color: #1DB954; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+        🎤 Iniciar Dictado
+    </button>
+    <button id="stop-dictation" style="background-color: #CD5C5C; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+        🛑 Detener Dictado
+    </button>
+</div>
+<!-- Script para la síntesis de voz -->
+<script>
+    const startButton = document.getElementById("start-dictation");
+    const stopButton = document.getElementById("stop-dictation");
+
+    const synth = window.speechSynthesis;
+    let isSpeaking = false; // Bandera para controlar el estado de la síntesis
+    let queue = []; // Cola para fragmentos de texto
+    let currentUtterance = null; // Utterance en curso
+
+    // Función para dividir el texto en fragmentos pequeños
+    function splitText(text, maxLength = 200) {
+        const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+        const chunks = [];
+        let currentChunk = "";
+
+        sentences.forEach((sentence) => {
+            if (currentChunk.length + sentence.length <= maxLength) {
+                currentChunk += sentence + " ";
+            } else {
+                chunks.push(currentChunk.trim());
+                currentChunk = sentence + " ";
+            }
+        });
+
+        if (currentChunk) {
+            chunks.push(currentChunk.trim());
+        }
+
+        return chunks;
+    }
+
+    // Función para iniciar el dictado
+    function startDictation() {
+        const textToSpeak = document.body.innerText || "";
+        queue = splitText(textToSpeak);
+
+        if (!isSpeaking && queue.length > 0) {
+            isSpeaking = true;
+            startButton.style.display = "none";
+            stopButton.style.display = "inline-block";
+            speakNext();
+        }
+    }
+
+    // Función para hablar el siguiente fragmento
+    function speakNext() {
+        if (queue.length > 0) {
+            const text = queue.shift();
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = "es-ES"; // Configurar idioma a español
+
+            currentUtterance.onend = () => {
+                if (isSpeaking) {
+                    speakNext();
+                }
+            };
+
+            currentUtterance.onerror = () => {
+                console.error("Error en la síntesis de voz.");
+                stopDictation();
+            };
+
+            synth.speak(currentUtterance);
+        } else {
+            stopDictation();
+        }
+    }
+
+    // Función para detener el dictado
+    function stopDictation() {
+        isSpeaking = false;
+        if (synth.speaking) {
+            synth.cancel();
+        }
+        queue = [];
+        startButton.style.display = "inline-block";
+        stopButton.style.display = "none";
+    }
+
+    // Asociar eventos a los botones
+    startButton.addEventListener("click", startDictation);
+    stopButton.addEventListener("click", stopDictation);
+</script>
+<body>
+    <!-- Menú interactivo estilo Spotify -->
+    <div class="navbar">
+        <div>
+            <a href="index.html">Inicio</a>
+            <a href="info.html">Nosotros</a>
+            <a href="disenos.html">Diseños</a>
+            <a href="https://www.instagram.com/emiliomo_/" target="_blank">Contacto</a>
+        </div>
+    </div>
+
+    <h1>Bandas</h1>
+
+    <div class="band-container">
+        <!-- Banda 1 -->
+        <div class="band-item">
+            <a href="magodeoz.html">
+                <img src="magodeoz.jpg" alt="Mägo de Oz">
+                <span>Mägo de Oz</span>
+            </a>
+        </div>
+        <!-- Banda 2 -->
+        <div class="band-item">
+            <a href="thestrokes.html">
+                <img src="thestrokes.jpg" alt="The Strokes">
+                <span>The Strokes</span>
+            </a>
+        </div>
+        <!-- Banda 3 -->
+        <div class="band-item">
+            <a href="thecure.html">
+                <img src="thecure.jpg" alt="The Cure">
+                <span>The Cure</span>
+            </a>
+        </div>
+        <!-- Banda 4 -->
+        <div class="band-item">
+            <a href="elcuartetodenos.html">
+                <img src="elcuartetodenos.png" alt="El Cuarteto de Nos">
+                <span>El Cuarteto de Nos</span>
+            </a>
+        </div>
+        <!-- Banda 5 -->
+        <div class="band-item">
+            <a href="dld.html">
+                <img src="dld.webp" alt="DLD">
+                <span>DLD</span>
+            </a>
+        </div>
+        <!-- Banda 6 -->
+        <div class="band-item">
+            <a href="zoe.html">
+                <img src="zoe.jpg" alt="Zoé">
+                <span>Zoé</span>
+            </a>
+        </div>
+         <!-- Banda 7 -->
+        <div class="band-item">
+            <a href="kiss.html">
+                <img src="kiss.jpg" alt="Kiss">
+                <span>Kiss</span>
+            </a>
+        </div>
+         <!-- Banda 8 -->
+         <div class="band-item">
+            <a href="pinkfloyd.html">
+                <img src="pinkfloyd.jpg" alt="Pink Floyd">
+                <span>Pink Floyd</span>
+            </a> <!-- Cerrado aquí -->
+        </div>
+         <!-- Banda 9 -->
+         <div class="band-item">
+            <a href="inspector.html">
+                <img src="inspector.jpg" alt="Inspector">
+                <span>Inspector</span>
+            </a>
+        </div>
+         <!-- Banda 10 -->
+         <div class="band-item">
+            <a href="PXNDX.html">
+                <img src="pxndx.jpg" alt="PXNDX">
+                <span>PXNDX</span>
+            </a>
+        </div>
+          <!-- Banda 11 -->
+          <div class="band-item">
+            <a href="linkinpark.html">
+                <img src="linkinpark.jpg" alt="Linkin Park">
+                <span>Linkin Park</span>
+            </a>
+        </div>
+                  <!-- Banda 12 -->
+                  <div class="band-item">
+                    <a href="nirvana.html">
+                        <img src="nirvana.png" alt="Nirvana">
+                        <span>Nirvana</span>
+                    </a>
+                </div>
+    </div>
+</body>
+</html>

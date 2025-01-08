@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WikiRock - Diseños</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            font-family: "Elephant", serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #1DB954;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            align-items: center;
+        }
+        .navbar a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+        .navbar a:hover {
+            color: #000000;
+        }
+        .container {
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+        h1 {
+            color: #1DB954;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .row {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+        .design {
+            width: 30%;
+        }
+        .design img {
+            width: 100%;
+            border-radius: 8px;
+        }
+        .btn-primary, .btn-success {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #1DB954;
+        }
+        .btn-primary:hover {
+            background-color: #14833b;
+        }
+        .btn-success {
+            background-color: #007bff;
+        }
+        .btn-success:hover {
+            background-color: #0056b3;
+        }
+        .cart {
+            margin: 20px auto;
+            max-width: 800px;
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            color: #ffffff;
+        }
+        .cart h2 {
+            color: #1DB954;
+            text-align: center;
+        }
+    </style>
+</head>
+<!-- Contenedor para los botones de dictado -->
+<div id="voice-controls" style="position: fixed; bottom: 10px; right: 10px; z-index: 1000;">
+    <button id="start-dictation" style="background-color: #1DB954; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+        🎤 Iniciar Dictado
+    </button>
+    <button id="stop-dictation" style="background-color: #CD5C5C; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+        🛑 Detener Dictado
+    </button>
+</div>
+
+<!-- Script para la síntesis de voz -->
+<script>
+    const startButton = document.getElementById("start-dictation");
+    const stopButton = document.getElementById("stop-dictation");
+
+    const synth = window.speechSynthesis;
+    let isSpeaking = false; // Bandera para controlar el estado de la síntesis
+    let queue = []; // Cola para fragmentos de texto
+    let currentUtterance = null; // Utterance en curso
+
+    // Función para dividir el texto en fragmentos pequeños
+    function splitText(text, maxLength = 200) {
+        const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+        const chunks = [];
+        let currentChunk = "";
+
+        sentences.forEach((sentence) => {
+            if (currentChunk.length + sentence.length <= maxLength) {
+                currentChunk += sentence + " ";
+            } else {
+                chunks.push(currentChunk.trim());
+                currentChunk = sentence + " ";
+            }
+        });
+
+        if (currentChunk) {
+            chunks.push(currentChunk.trim());
+        }
+
+        return chunks;
+    }
+
+    // Función para iniciar el dictado
+    function startDictation() {
+        const textToSpeak = document.body.innerText || "";
+        queue = splitText(textToSpeak);
+
+        if (!isSpeaking && queue.length > 0) {
+            isSpeaking = true;
+            startButton.style.display = "none";
+            stopButton.style.display = "inline-block";
+            speakNext();
+        }
+    }
+
+    // Función para hablar el siguiente fragmento
+    function speakNext() {
+        if (queue.length > 0) {
+            const text = queue.shift();
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = "es-ES"; // Configurar idioma a español
+
+            currentUtterance.onend = () => {
+                if (isSpeaking) {
+                    speakNext();
+                }
+            };
+
+            currentUtterance.onerror = () => {
+                console.error("Error en la síntesis de voz.");
+                stopDictation();
+            };
+
+            synth.speak(currentUtterance);
+        } else {
+            stopDictation();
+        }
+    }
+
+    // Función para detener el dictado
+    function stopDictation() {
+        isSpeaking = false;
+        if (synth.speaking) {
+            synth.cancel();
+        }
+        queue = [];
+        startButton.style.display = "inline-block";
+        stopButton.style.display = "none";
+    }
+
+    // Asociar eventos a los botones
+    startButton.addEventListener("click", startDictation);
+    stopButton.addEventListener("click", stopDictation);
+</script>
+<body>
+    <!-- Menú interactivo estilo Spotify -->
+    <div class="navbar">
+        <div>
+            <a href="index.html">Inicio</a>
+            <a href="info.html">Nosotros</a>
+            <a href="disenos.html">Diseños</a>
+            <a href="https://www.instagram.com/emiliomo_/" target="_blank">Contacto</a>
+        </div>
+        <div>
+            <button class="btn btn-light" onclick="viewCart()">🛒 Ver Carrito (<span id="cart-count">0</span>)</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Diseños de la Mercancía</h1>
+
+        <!-- Fila 1 -->
+        <div class="row">
+            <div class="design">
+                <img src="diseno1.jpg" alt="Diseño 1">
+                <button class="btn btn-primary" onclick="addToCart('Diseño 1')">Añadir al Carrito</button>
+                <a href="comprar_diseno1.html" class="btn btn-success">Comprar</a>
+            </div>
+            <div class="design">
+                <img src="diseno2.jpg" alt="Diseño 2">
+                <button class="btn btn-primary" onclick="addToCart('Diseño 2')">Añadir al Carrito</button>
+                <a href="comprar_diseno2.html" class="btn btn-success">Comprar</a>
+            </div>
+            <div class="design">
+                <img src="diseno3.jpg" alt="Diseño 3">
+                <button class="btn btn-primary" onclick="addToCart('Diseño 3')">Añadir al Carrito</button>
+                <a href="comprar_diseno3.html" class="btn btn-success">Comprar</a>
+            </div>
+        </div>
+
+        <!-- Fila 2 -->
+        <div class="row">
+            <div class="design">
+                <img src="diseno4.jpg" alt="Diseño 4">
+                <button class="btn btn-primary" onclick="addToCart('Diseño 4')">Añadir al Carrito</button>
+                <a href="comprar_diseno4.html" class="btn btn-success">Comprar</a>
+            </div>
+            <div class="design">
+                <img src="diseno5.jpg" alt="Diseño 5">
+                <button class="btn btn-primary" onclick="addToCart('Diseño 5')">Añadir al Carrito</button>
+                <a href="comprar_diseno5.html" class="btn btn-success">Comprar</a>
+            </div>
+            <div class="design">
+                <img src="diseno6.jpg" alt="Diseño 6">
+                <button class="btn btn-primary" onclick="addToCart('Diseño 6')">Añadir al Carrito</button>
+                <a href="comprar_diseno6.html" class="btn btn-success">Comprar</a>
+            </div>
+        </div>
+
+        <!-- Fila 3 -->
+        <div class="row">
+            <div class="design">
+                <img src="diseno7.jpg" alt="Diseño 7">
+                <button class="btn btn-primary" onclick="addToCart('Diseño 7')">Añadir al Carrito</button>
+                <a href="comprar_diseno7.html" class="btn btn-success">Comprar</a>
+            </div>
+            <div class="design">
+                <img src="diseno8.jpg" alt="Diseño 8">
+                <button class="btn btn-primary" onclick="addToCart('Diseño 8')">Añadir al Carrito</button>
+                <a href="comprar_diseno8.html" class="btn btn-success">Comprar</a>
+            </div>
+            <div class="design">
+                <img src="diseno9.jpg" alt="Diseño 9">
+                <button class="btn btn-primary" onclick="addToCart('Diseño 9')">Añadir al Carrito</button>
+                <a href="comprar_diseno9.html" class="btn btn-success">Comprar</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carrito -->
+    <div class="cart" id="cart" style="display: none;">
+        <h2>Carrito de Compras</h2>
+        <ul id="cart-items">
+            <!-- Artículos se mostrarán aquí -->
+        </ul>
+        <button class="btn btn-primary" onclick="checkout()">Pagar</button>
+    </div>
+
+    <script>
+        let cart = [];
+
+        function addToCart(item) {
+            cart.push(item);
+            updateCartCount();
+            alert(`${item} fue añadido al carrito.`);
+        }
+
+        function updateCartCount() {
+            document.getElementById('cart-count').textContent = cart.length;
+        }
+
+        function viewCart() {
+            const cartDiv = document.getElementById('cart');
+            const cartItems = document.getElementById('cart-items');
+            cartItems.innerHTML = "";
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = "<li>El carrito está vacío.</li>";
+            } else {
+                cart.forEach((item, index) => {
+                    cartItems.innerHTML += `<li>${item} <button onclick="removeFromCart(${index})">❌</button></li>`;
+                });
+            }
+
+            cartDiv.style.display = "block";
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartCount();
+            viewCart();
+        }
+
+        function checkout() {
+    if (cart.length === 0) {
+        alert("El carrito está vacío.");
+    } else {
+        alert("Redirigiéndote a la página de confirmación de compra...");
+        cart = []; // Vacía el carrito después de confirmar la compra.
+        updateCartCount(); // Actualiza el contador del carrito.
+        window.location.href = "confirmar_compra.html"; // Redirige a la página de confirmación.
+    }
+}
+    </script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pink Floyd</title>
+    <style>
+        body {
+            font-family: "Elephant", serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #1DB954;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            align-items: center;
+        }
+        .navbar a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+        .navbar a:hover {
+            color: #000000;
+        }
+        .content-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #1E1E1E;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        h1 {
+            color: #1DB954;
+            margin-bottom: 20px;
+        }
+        img {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+        }
+        p {
+            line-height: 1.6;
+            font-size: 16px;
+            text-align: justify;
+        }
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .button-container a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+            padding: 10px 15px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .button-container a img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        .back-link {
+            background-color: #1DB954;
+            color: #ffffff;
+        }
+        .back-link:hover {
+            background-color: #14833b;
+        }
+        .spotify-button {
+            background-color: #1DB954;
+            color: #ffffff;
+        }
+        .spotify-button:hover {
+            background-color: #14833b;
+        }
+        .youtube-button {
+            background-color: #FF0000;
+            color: #ffffff;
+        }
+        .youtube-button:hover {
+            background-color: #cc0000;
+        }
+        .spacer {
+            flex-basis: 100%;
+            height: 0;
+        }
+          /* Estilo para los botones de dictado */
+          #start-dictation, #stop-dictation {
+            font-family: "Elephant", serif; /* Fuente personalizada */
+        }
+    </style>
+</head>
+<!-- Contenedor para los botones de dictado -->
+<div id="voice-controls" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <button id="start-dictation" style="background-color: #1DB954; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+        🎤 Iniciar Dictado
+    </button>
+    <button id="stop-dictation" style="background-color: #CD5C5C; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+        🛑 Detener Dictado
+    </button>
+</div>
+
+<!-- Script para la síntesis de voz -->
+<script>
+    const startButton = document.getElementById("start-dictation");
+    const stopButton = document.getElementById("stop-dictation");
+
+    const synth = window.speechSynthesis;
+    let isSpeaking = false; // Bandera para controlar el estado de la síntesis
+    let queue = []; // Cola para fragmentos de texto
+    let currentUtterance = null; // Utterance en curso
+
+    // Función para dividir el texto en fragmentos pequeños
+    function splitText(text, maxLength = 200) {
+        const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+        const chunks = [];
+        let currentChunk = "";
+
+        sentences.forEach((sentence) => {
+            if (currentChunk.length + sentence.length <= maxLength) {
+                currentChunk += sentence + " ";
+            } else {
+                chunks.push(currentChunk.trim());
+                currentChunk = sentence + " ";
+            }
+        });
+
+        if (currentChunk) {
+            chunks.push(currentChunk.trim());
+        }
+
+        return chunks;
+    }
+
+    // Función para iniciar el dictado
+    function startDictation() {
+        const textToSpeak = document.body.innerText || "";
+        queue = splitText(textToSpeak);
+
+        if (!isSpeaking && queue.length > 0) {
+            isSpeaking = true;
+            startButton.style.display = "none";
+            stopButton.style.display = "inline-block";
+            speakNext();
+        }
+    }
+
+    // Función para hablar el siguiente fragmento
+    function speakNext() {
+        if (queue.length > 0) {
+            const text = queue.shift();
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = "es-ES"; // Configurar idioma a español
+
+            currentUtterance.onend = () => {
+                if (isSpeaking) {
+                    speakNext();
+                }
+            };
+
+            currentUtterance.onerror = () => {
+                console.error("Error en la síntesis de voz.");
+                stopDictation();
+            };
+
+            synth.speak(currentUtterance);
+        } else {
+            stopDictation();
+        }
+    }
+
+    // Función para detener el dictado
+    function stopDictation() {
+        isSpeaking = false;
+        if (synth.speaking) {
+            synth.cancel();
+        }
+        queue = [];
+        startButton.style.display = "inline-block";
+        stopButton.style.display = "none";
+    }
+
+    // Asociar eventos a los botones
+    startButton.addEventListener("click", startDictation);
+    stopButton.addEventListener("click", stopDictation);
+</script>
+<body>
+    <!-- Menú interactivo estilo Spotify -->
+    <div class="navbar">
+        <div>
+            <a href="index.html">Inicio</a>
+            <a href="info.html">Nosotros</a>
+            <a href="disenos.html">Diseños</a>
+            <a href="https://www.instagram.com/emiliomo_/" target="_blank">Contacto</a>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="content-container">
+        <h1>Pink Floyd</h1>
+        <img src="pinkfloydband.jpg" alt="Pink Floyd">
+        <p>
+            Pink Floyd fue un grupo de rock británico que cosechó gran popularidad gracias a su música psicodélica que, con el paso del tiempo, fue evolucionando hacia el rock progresivo y el rock sinfónico. Es conocido por sus canciones de contenido filosófico, la experimentación sónica, las innovadoras portadas de sus discos y sus elaborados espectáculos en vivo.
+        </p>
+        <p>
+            Es una de las bandas más importantes e influyentes de la escena del rock con más de 300 millones de álbumes vendidos en todo el mundo, de los cuales 74,5 millones fueron solo en los Estados Unidos.
+        </p>
+        <p>
+            Inicialmente el grupo estaba formado por el guitarrista Bob Klose, el baterista Nick Mason, el teclista y vocalista Richard Wright, el bajista y vocalista Roger Waters, y el guitarrista rítmico y vocalista principal Syd Barrett, quien se convirtió en el primer líder de la banda. Sin embargo, debido a su extraño comportamiento relacionado con el consumo de LSD, fue sustituido en 1968 por David Gilmour, lo que consolidó la formación clásica de Pink Floyd.
+        </p>
+        <p>
+            Pink Floyd comenzó con gran éxito en la escena underground londinense a finales de los años 60. Tras la salida de Syd Barrett, Roger Waters se convirtió en la fuerza dominante de la banda. Durante esta época, se grabaron álbumes icónicos como *The Dark Side of the Moon* (1973), *Wish You Were Here* (1975), *Animals* (1977) y *The Wall* (1979).
+        </p>
+        <p>
+            En 1985, Waters dejó Pink Floyd, pero el resto de los miembros, liderados por Gilmour, continuaron grabando y haciendo giras. Tras una disputa legal, Waters obtuvo los derechos sobre la imaginería de la banda, pero Gilmour, Mason y Wright continuaron con el nombre. La banda disfrutó de éxitos comerciales con *A Momentary Lapse of Reason* (1987) y *The Division Bell* (1994).
+        </p>
+        <p>
+            Aunque Waters se embarcó en una carrera como solista, los miembros restantes se reunieron en el concierto Live 8 en Londres en 2005, marcando una histórica reunión tras 24 años.
+        </p>
+
+        <!-- Botones distribuidos -->
+        <div class="button-container">
+            <!-- Botones superiores (Regresar) -->
+            <a href="index.html" class="back-link">Regresar al Inicio</a>
+            <a href="bandas.html" class="back-link">Regresar a Otras Bandas</a>
+
+            <div class="spacer"></div> <!-- Espaciador para separar filas -->
+
+            <!-- Botones inferiores (Escuchar) -->
+            <a href="https://open.spotify.com/intl-es/artist/0k17h0D3J5VfsdmQ1iZtE9" target="_blank" class="spotify-button">
+                <img src="spotifylogo.jpg" alt="Spotify"> Escuchar en Spotify
+            </a>
+            <a href="https://www.youtube.com/channel/UCY2qt3dw2TQJxvBrDiYGHdQ" target="_blank" class="youtube-button">
+                <img src="youtubelogo.png" alt="YouTube"> Escuchar en YouTube
+            </a>
+        </div>
+    </div>
+</body>
+</html>

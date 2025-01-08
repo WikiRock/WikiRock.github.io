@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WikiRock</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Importamos jQuery y Bootstrap para el carrusel -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            font-family: "Elephant", serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #1DB954;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            align-items: center;
+        }
+        .navbar a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+        .navbar a:hover {
+            color: #000000;
+        }
+        .container {
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+        h1 {
+            color: #1DB954;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .carousel-caption {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .carousel-caption h5 {
+            color: #1DB954;
+        }
+        .btn-primary {
+            background-color: #1DB954;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #14833b;
+        }
+        .btn-success {
+            background-color: #CD5C5C;
+        }
+        .btn-success:hover {
+            background-color: #FF0000;
+        }
+        .carousel-inner img {
+            width: 100%;
+            height: 600px; /* Ajusta la altura según tu necesidad */
+            object-fit: cover;
+        }
+        .band-links {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .band-links a {
+            background-color: #1DB954;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+        }
+        .band-links a:hover {
+            background-color: #14833b;
+            color: #ffffff;
+        }
+        .btn-success, .btn-primary {
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+    </style>
+    <!-- Contenedor para los botones de dictado -->
+<div id="voice-controls" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <button id="start-dictation" style="background-color: #1DB954; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+        🎤 Iniciar Dictado
+    </button>
+    <button id="stop-dictation" style="background-color: #CD5C5C; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+        🛑 Detener Dictado
+    </button>
+</div>
+
+<!-- Script para la síntesis de voz -->
+<script>
+    const startButton = document.getElementById("start-dictation");
+    const stopButton = document.getElementById("stop-dictation");
+
+    // Inicializar el sintetizador de voz
+    const synth = window.speechSynthesis;
+
+    // Función para obtener todo el texto visible en la página
+    function getVisibleText() {
+        return document.body.innerText || "";
+    }
+
+    // Función para iniciar el dictado
+    function startDictation() {
+        const textToSpeak = getVisibleText();
+        if (!synth.speaking) {
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = "es-ES"; // Configurar el idioma a español
+            synth.speak(utterance);
+        }
+
+        // Mostrar botón de detener y ocultar el de iniciar
+        startButton.style.display = "none";
+        stopButton.style.display = "inline-block";
+    }
+
+    // Función para detener el dictado
+    function stopDictation() {
+        if (synth.speaking) {
+            synth.cancel();
+        }
+
+        // Mostrar botón de iniciar y ocultar el de detener
+        startButton.style.display = "inline-block";
+        stopButton.style.display = "none";
+    }
+
+    // Asociar eventos a los botones
+    startButton.addEventListener("click", startDictation);
+    stopButton.addEventListener("click", stopDictation);
+</script> 
+</head>
+<body>
+    <!-- Menú interactivo estilo Spotify -->
+<div class="navbar">
+    <div>
+        <a href="index.html">Inicio</a>
+        <a href="info.html">Nosotros</a>
+        <a href="disenos.html">Diseños</a>
+        <a href="https://www.instagram.com/emiliomo_/" target="_blank">Contacto</a>
+    </div>
+</div>
+    <div class="container">
+        <h1>WikiRock</h1>
+        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+                <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="3"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="4"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="5"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="6"></li>
+            </ol>
+               <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img class="d-block w-100" src="caifanes1.jpg" alt="Primera imagen">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Caifanes - "Caifanes" (1988)</h5>
+                        <p>Fue el disco debut de la banda mexicana Caifanes y se lanzó en 1988. Este álbum marcó el inicio de una de las bandas más icónicas del rock en español y dejó un impacto importante en la escena musical en Latinoamérica.</p>
+                        <p>Sus dos primeras canciones de este albúm se llaman: Viento 261M de escuchas, Matenme porque me muero 125M de escuchas</p>
+                        <a href="https://www.youtube.com/playlist?list=PLn2bhCs7zIRNapK2gHbHIZRpPnYde4Bes" class="btn btn-success" target="_blank">Escuchar en Youtube</a>
+                        <a href="https://open.spotify.com/intl-es/album/7oNSmwtmqu8EvnD3cv2HOr" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img class="d-block w-100" src="queen1.jpg" alt="Segunda imagen">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Queen - "A Night at the Opera" (1975)</h5>
+                        <p>Este álbum de Queen incluye una de sus canciones más emblemáticas, "Bohemian Rhapsody". Marcó un hito en la música rock con su mezcla única de estilos y su producción innovadora.</p>
+                        <p>Sus dos primeras canciones de este albúm se llaman: Death on Two Legs 79M de escuchas, Lazing on a Sunday Afternoon 56M de escuchas</p>
+                        <a href="https://www.youtube.com/playlist?list=PLBnJv6rImVe9XXPLwK2CvysVd_CnrYB81" class="btn btn-success" target="_blank">Escuchar en Youtube</a>
+                        <a href="https://open.spotify.com/intl-es/album/1GbtB4zTqAsyfZEsm1RZfx" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img class="d-block w-100" src="thecure1.jpg" alt="Tercera imagen">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>The Cure - "Disintegration" (1989)</h5>
+                        <p>Disintegration es considerado uno de los mejores álbumes de The Cure y una obra maestra del rock gótico. Incluye éxitos como "Lovesong" y "Pictures of You".</p>
+                        <p>Sus dos primeras canciones de este albúm se llaman: Plainsong 48M de escuchas, Pictures of You 121M de escuchas</p>
+                        <a href="https://www.youtube.com/playlist?list=PLGFFTE0Sw8tStwmuVsAoeOEdmWBLceK9b" class="btn btn-success" target="_blank">Escuchar en Youtube</a>
+                        <a href="https://open.spotify.com/intl-es/album/7uUltiwqvVn8Uy23Hdf1kE" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img class="d-block w-100" src="thedoors1.jpg" alt="Cuarta imagen">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>The Doors - "The Doors" (1967)</h5>
+                        <p>El álbum debut homónimo de The Doors presentó al mundo canciones clásicas como "Light My Fire" y "Break on Through". Este disco estableció a la banda como una fuerza revolucionaria en el rock psicodélico.</p>
+                        <p>Sus dos primeras canciones de este albúm se llaman: Break on Through 99M de escuchas, Soul Kitchen 75M de escuchas</p>
+                        <a href="https://www.youtube.com/playlist?list=PLiN-7mukU_RHopba7ndH5EMvoac_iOeqv" class="btn btn-success" target="_blank">Escuchar en Youtube</a>
+                        <a href="https://open.spotify.com/intl-es/album/1jWmEhn3ggaL6isoyLfwBn" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img class="d-block w-100" src="caifanes2.jpg" alt="Quinta imagen">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Caifanes - "Volumen II" (El diablito)(1990)</h5>
+                        <p>Es el segundo disco de estudio de Caifanes, lanzado en 1990. Este trabajo consolidó el sonido característico de la banda y la posicionó como una de las más importantes del rock en español de su época. Su nombre proviene de un diablito ilustrado en la portada, inspirado en los diseños de la lotería mexicana.</p>
+                        <p>Sus dos primeras canciones de este albúm se llaman Los dioses ocultos 88M, La Celula que explota 125M</p>
+                        <a href="https://www.youtube.com/playlist?list=PLxvLilvOS9dFpQbYLWZszsqPOMSDnmiz_" class="btn btn-success" target="_blank">Escuchar en Youtube</a>
+                        <a href="https://open.spotify.com/intl-es/album/2cGrlR3OJwtQXUa4aQJRCV" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img class="d-block w-100" src="elefante1.jpg" alt="Sexta imagen">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Elefante - "Elefante" (2005)</h5>
+                        <p>Elefante es una banda mexicana que lanzó su álbum homónimo en 2005. Este disco incluye algunas de sus canciones más populares, como "Ángel" con 221M de escuchas y "Mentirosa" con 155M de escuchas. El álbum consolidó a Elefante como una de las bandas más queridas en la escena del rock latinoamericano.</p>
+                        <a href="https://www.youtube.com/playlist?list=PL5EPby9n71MNWCjtvX4bXV03pYXZktkLl" class="btn btn-success" target="_blank">Escuchar en Youtube</a>
+                        <a href="https://open.spotify.com/intl-es/album/42Fc71rqB9qZAb84q0Hs3U" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img class="d-block w-100" src="elefante2.jpg" alt="Septima imagen">
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Elefante - "El que busca encuentra" (2001)</h5>
+                        <p>Este es el primer álbum de Elefante, lanzado en 2001. Incluye algunas de sus canciones más populares como "Así es la vida" con 313M de escuchas y "De la noche a la mañana" con 154M de escuchas. Este álbum marcó el inicio de la carrera de Elefante en la escena del rock mexicano.</p>
+                        <a href="https://www.youtube.com/playlist?list=OLAK5uy_n1NV14yl-b0J95D0BA30rNxPsTTz3E3Cs" class="btn btn-success" target="_blank">Escuchar en Youtube</a>
+                        <a href="https://open.spotify.com/intl-es/album/0fuY5UnmF59L4xKeRSZFbm" class="btn btn-primary" target="_blank">Escuchar en Spotify</a>
+                    </div>
+                </div>
+            </div>
+
+            <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Anterior</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Siguiente</span>
+            </a>
+        </div>
+
+        <!-- Botones para Caifanes y Elefante -->
+        <div class="band-links">
+            <a href="caifanes.html" class="btn btn-primary">Caifanes</a>
+            <a href="elefante.html" class="btn btn-primary">Elefante</a>
+            <a href="queen.html" class="btn btn-primary">Queen</a>
+            <a href="thedoors.html" class="btn btn-primary">The Doors</a>
+            <a href="bandas.html" class="btn btn-primary">Mas Bandas</a>
+        </div>
+    </div>
+</body>
+</html>

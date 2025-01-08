@@ -1,0 +1,8 @@
+body {
+    background-color: #121212; /* Color de fondo oscuro */
+    color: #ffffff; /* Color de texto claro */
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* Tipografía */
+}
+h1 {
+    color: #1DB954; /* Color verde característico de Spotify */
+    text-align: center

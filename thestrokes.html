@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Strokes</title>
+    <style>
+        body {
+            font-family: "Elephant", serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #1DB954;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            align-items: center;
+        }
+        .navbar a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+        .navbar a:hover {
+            color: #000000;
+        }
+        .content-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #1E1E1E;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        h1 {
+            color: #1DB954;
+            margin-bottom: 20px;
+        }
+        img {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+        }
+        p {
+            line-height: 1.6;
+            font-size: 16px;
+            text-align: justify;
+        }
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .button-container a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+            padding: 10px 15px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .button-container a img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        .back-link {
+            background-color: #1DB954;
+            color: #ffffff;
+        }
+        .back-link:hover {
+            background-color: #14833b;
+        }
+        .spotify-button {
+            background-color: #1DB954;
+            color: #ffffff;
+        }
+        .spotify-button:hover {
+            background-color: #14833b;
+        }
+        .youtube-button {
+            background-color: #FF0000;
+            color: #ffffff;
+        }
+        .youtube-button:hover {
+            background-color: #cc0000;
+        }
+        .spacer {
+            flex-basis: 100%;
+            height: 0;
+        }
+          /* Estilo para los botones de dictado */
+          #start-dictation, #stop-dictation {
+            font-family: "Elephant", serif; /* Fuente personalizada */
+        }
+    </style>
+</head>
+<!-- Contenedor para los botones de dictado -->
+<div id="voice-controls" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <button id="start-dictation" style="background-color: #1DB954; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+        🎤 Iniciar Dictado
+    </button>
+    <button id="stop-dictation" style="background-color: #CD5C5C; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+        🛑 Detener Dictado
+    </button>
+</div>
+
+<!-- Script para la síntesis de voz -->
+<script>
+    const startButton = document.getElementById("start-dictation");
+    const stopButton = document.getElementById("stop-dictation");
+
+    const synth = window.speechSynthesis;
+    let isSpeaking = false; // Bandera para controlar el estado de la síntesis
+    let queue = []; // Cola para fragmentos de texto
+    let currentUtterance = null; // Utterance en curso
+
+    // Función para dividir el texto en fragmentos pequeños
+    function splitText(text, maxLength = 200) {
+        const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+        const chunks = [];
+        let currentChunk = "";
+
+        sentences.forEach((sentence) => {
+            if (currentChunk.length + sentence.length <= maxLength) {
+                currentChunk += sentence + " ";
+            } else {
+                chunks.push(currentChunk.trim());
+                currentChunk = sentence + " ";
+            }
+        });
+
+        if (currentChunk) {
+            chunks.push(currentChunk.trim());
+        }
+
+        return chunks;
+    }
+
+    // Función para iniciar el dictado
+    function startDictation() {
+        const textToSpeak = document.body.innerText || "";
+        queue = splitText(textToSpeak);
+
+        if (!isSpeaking && queue.length > 0) {
+            isSpeaking = true;
+            startButton.style.display = "none";
+            stopButton.style.display = "inline-block";
+            speakNext();
+        }
+    }
+
+    // Función para hablar el siguiente fragmento
+    function speakNext() {
+        if (queue.length > 0) {
+            const text = queue.shift();
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = "es-ES"; // Configurar idioma a español
+
+            currentUtterance.onend = () => {
+                if (isSpeaking) {
+                    speakNext();
+                }
+            };
+
+            currentUtterance.onerror = () => {
+                console.error("Error en la síntesis de voz.");
+                stopDictation();
+            };
+
+            synth.speak(currentUtterance);
+        } else {
+            stopDictation();
+        }
+    }
+
+    // Función para detener el dictado
+    function stopDictation() {
+        isSpeaking = false;
+        if (synth.speaking) {
+            synth.cancel();
+        }
+        queue = [];
+        startButton.style.display = "inline-block";
+        stopButton.style.display = "none";
+    }
+
+    // Asociar eventos a los botones
+    startButton.addEventListener("click", startDictation);
+    stopButton.addEventListener("click", stopDictation);
+</script>
+<body>
+    <!-- Menú interactivo estilo Spotify -->
+    <div class="navbar">
+        <div>
+            <a href="index.html">Inicio</a>
+            <a href="info.html">Nosotros</a>
+            <a href="disenos.html">Diseños</a>
+            <a href="https://www.instagram.com/emiliomo_/" target="_blank">Contacto</a>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="content-container">
+        <h1>The Strokes</h1>
+        <img src="thestrokes1.jpg" alt="The Strokes">
+        <p>
+            The Strokes es una banda estadounidense. Fue formada en Nueva York, Estados Unidos, en 1998. La agrupación está compuesta por el cantante Julian Casablancas, los guitarristas Nick Valensi y Albert Hammond Jr., el bajista Nikolai Fraiture y el baterista Fabrizio Moretti.
+        </p>
+        <p>
+            Entre sus canciones más reconocidas se encuentran "The Adults Are Talking", "Selfless", "Someday", "Last Nite" y "Reptilia".
+        </p>
+        <p>
+            The Strokes comenzó su carrera en Nueva York, Estados Unidos, en 1998. Son considerados una de las bandas más influyentes del revival del rock de principios de los años 2000. La agrupación fue formada por Julian Casablancas (voz), Nick Valensi (guitarra y voz), Albert Hammond Jr. (guitarra y voz), Nikolai Fraiture (bajo) y Fabrizio Moretti (batería).
+        </p>
+        <p>
+            Los inicios de The Strokes estuvieron marcados por su conexión con la escena musical neoyorquina, donde comenzaron a tocar en pequeños lugares y festivales locales. Su sonido, que fusiona elementos del garage rock, punk y post-punk, se caracterizaba por melodías pegajosas y letras introspectivas, lo que rápidamente resonó con un público más amplio.
+        </p>
+
+        <!-- Botones distribuidos -->
+        <div class="button-container">
+            <!-- Botones superiores (Regresar) -->
+            <a href="index.html" class="back-link">Regresar al Inicio</a>
+            <a href="bandas.html" class="back-link">Regresar a Otras Bandas</a>
+
+            <div class="spacer"></div> <!-- Espaciador para separar filas -->
+
+            <!-- Botones inferiores (Escuchar) -->
+            <a href="https://open.spotify.com/intl-es/artist/0epOFNiUfyON9EYx7Tpr6V" target="_blank" class="spotify-button">
+                <img src="spotifylogo.jpg" alt="Spotify"> Escuchar en Spotify
+            </a>
+            <a href="https://www.youtube.com/channel/UC28OQSWdiW7jkadedZRRyZA" target="_blank" class="youtube-button">
+                <img src="youtubelogo.png" alt="YouTube"> Escuchar en YouTube
+            </a>
+        </div>
+    </div>
+</body>
+</html>
