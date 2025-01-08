@@ -63,6 +63,58 @@
             text-align: justify;
         }
     </style>
+     <!-- Contenedor para los botones de dictado -->
+<div id="voice-controls" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <button id="start-dictation" style="background-color: #1DB954; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 5px;">
+        🎤 Iniciar Dictado
+    </button>
+    <button id="stop-dictation" style="background-color: #CD5C5C; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; display: none;">
+        🛑 Detener Dictado
+    </button>
+</div>
+
+<!-- Script para la síntesis de voz -->
+<script>
+    const startButton = document.getElementById("start-dictation");
+    const stopButton = document.getElementById("stop-dictation");
+
+    // Inicializar el sintetizador de voz
+    const synth = window.speechSynthesis;
+
+    // Función para obtener todo el texto visible en la página
+    function getVisibleText() {
+        return document.body.innerText || "";
+    }
+
+    // Función para iniciar el dictado
+    function startDictation() {
+        const textToSpeak = getVisibleText();
+        if (!synth.speaking) {
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = "es-ES"; // Configurar el idioma a español
+            synth.speak(utterance);
+        }
+
+        // Mostrar botón de detener y ocultar el de iniciar
+        startButton.style.display = "none";
+        stopButton.style.display = "inline-block";
+    }
+
+    // Función para detener el dictado
+    function stopDictation() {
+        if (synth.speaking) {
+            synth.cancel();
+        }
+
+        // Mostrar botón de iniciar y ocultar el de detener
+        startButton.style.display = "inline-block";
+        stopButton.style.display = "none";
+    }
+
+    // Asociar eventos a los botones
+    startButton.addEventListener("click", startDictation);
+    stopButton.addEventListener("click", stopDictation);
+</script> 
 </head>
 <body>
 
